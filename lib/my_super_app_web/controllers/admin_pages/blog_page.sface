@@ -1,0 +1,201 @@
+<h3 class="text-moon-32  transition-colors mb-4">Blog</h3>
+<div class="flex justify-between">
+  <Dropdown id="dropdown">
+    <Dropdown.Trigger>
+      <Button class="mb-4 mr-4 bg-popo hover:bg-neutral-700">{@dropdown_name}</Button>
+    </Dropdown.Trigger>
+    <Dropdown.Options class="w-auto">
+      {#for item <- @items}
+        <Dropdown.Option on_click="option_send" value={item}>
+          <Lego.Title>{item}</Lego.Title>
+        </Dropdown.Option>
+      {#else}
+        No items
+      {/for}
+      <Dropdown.Option on_click="option_send_all" value="All_operators">
+        <Lego.Title>All Authors</Lego.Title>
+      </Dropdown.Option>
+    </Dropdown.Options>
+  </Dropdown>
+
+  <Dropdown id="tag_dropdown">
+    <Dropdown.Trigger>
+      <Button class="bg-popo hover:bg-neutral-700">{@tag_dropdown_name}</Button>
+    </Dropdown.Trigger>
+    <Dropdown.Options class="w-auto">
+      {#for item <- @tag_items}
+        <Dropdown.Option on_click="option_send_tag" value={item.name}>
+          <Lego.Title>{item.name}</Lego.Title>
+        </Dropdown.Option>
+      {#else}
+        No items
+      {/for}
+      <Dropdown.Option on_click="option_send_all_tags" value="All_tags">
+        <Lego.Title>All Tags</Lego.Title>
+      </Dropdown.Option>
+    </Dropdown.Options>
+  </Dropdown>
+
+  <Search
+    id="default-search"
+    {=@filter}
+    on_keyup="change_filter"
+    options={[]}
+    class="pb-4 ml-4"
+    prompt="Search by title or id"
+  />
+</div>
+
+<Snackbar id="snackbar_delete_post" is_open={@open_delete_snackbar} timeout={2000}>
+  <Snackbar.Icon class="bg-roshi-10 text-roshi">
+    <GenericInfo />
+  </Snackbar.Icon>
+  <Snackbar.Content>
+    <Snackbar.Header>Success</Snackbar.Header>
+    <Snackbar.Message>Post {@post.title} deleted</Snackbar.Message>
+  </Snackbar.Content>
+  <Snackbar.Close />
+</Snackbar>
+
+<Modal id="default_modal" is_open={@default_modal_open} :if={@default_modal_open}>
+  <Modal.Backdrop />
+  <Modal.Panel>
+    <div class="p-4  border-beerus">
+      <h3 class="text-moon-18 text-center text-bulma font-medium border-b-2 pb-4">
+        Are you sure you want to delete post: {@post.title} ?
+      </h3>
+      <br>
+      <div class="text-left border-b-2 pb-4">
+        id: {@post.id}
+        <br>
+        Post name: {@post.title}
+      </div>
+    </div>
+    <div class="p-4 border-beerus flex justify-end">
+      <Button on_click="set_close" variant="outline">Discard</Button>
+      <Button on_click="set_close_confirm" value={@post.id} class="bg-popo hover:bg-neutral-700 ml-4">Confirm</Button>
+    </div>
+  </Modal.Panel>
+</Modal>
+
+<Modal id="edit_picture_modal" is_open={@edit_picture_modal_open} :if={@edit_picture_modal_open}>
+  <Modal.Backdrop />
+  <Modal.Panel class="w-2/4 max-w-4xl mx-auto">
+    <h3 class="text-moon-18 text-center text-bulma font-medium border-b-2 pb-4">
+      Change Picture:
+    </h3>
+    <Form for={@picture_form} submit="update_picture">
+      <Field field={:id} class="pt-4">
+        <div class="p-4 border-beerus flex justify-end mt-2">
+          <select phx-change="update_picture_in_modal" name="id" id="id">
+            {#for picture <- Pictures.get_select_pictures()}
+              <option value={picture[:value]}>{picture[:key]}</option>
+            {/for}
+          </select>
+        </div>
+      </Field>
+      <div class="flex justify-end mt-5">
+        <Button class="bg-popo hover:bg-zeno ml-4" type="submit">Update</Button>
+      </div>
+    </Form>
+    <img src={@image_src} width="640">
+    <Button on_click="set_close_edit_picture" variant="outline">Back</Button>
+  </Modal.Panel>
+</Modal>
+
+<div class="w-full gap-4">
+  <Table
+    items={post <- posts_pages(assigns)}
+    class="mt-4"
+    {=@sort}
+    sorting_click="handle_sorting_click"
+    is_cell_border
+    row_click="show_modal_body"
+    id="table_users"
+  >
+    <Column name="id" label="ID" sortable>
+      {post.id}
+    </Column>
+    <Column name="title" label="Title" sortable>
+      {post.title}
+    </Column>
+    <Column name="author" label="Author">
+      {get_name(post.user_id)}
+    </Column>
+    <Column name="inserted_at" label="Created at" sortable>
+      {Timex.format!(post.inserted_at, "%b %d, %Y, %H:%M:%S", :strftime)}
+    </Column>
+    <Column name="published_at" label="Published at" sortable>
+      {#if post.published_at == nil}
+        <Button
+          full_width="true"
+          on_click="publish_post"
+          value={post.id}
+          class="bg-nappa hover:bg-neutral-700"
+        >Publish</Button>
+      {#else}
+        {Timex.format!(post.published_at, "%b %d, %Y, %H:%M:%S", :strftime)}
+      {/if}
+    </Column>
+    <Column label="">
+      <Button
+        full_width="true"
+        on_click="open_edit_picture_modal"
+        value={post.id}
+        class="bg-popo hover:bg-neutral-700"
+      >Edit picture</Button>
+    </Column>
+    <Column label="">
+      {#if @current_user.operator_id != nil or Mix.env() == :test}
+        <Button
+          full_width="true"
+          on_click="set_open"
+          value={post.id}
+          class="bg-popo hover:bg-neutral-700"
+        >Delete post</Button>
+      {#else}
+        <Button full_width="true" on_click="set_open" value={post.id} disabled="true" class="bg-popo">Delete post</Button>
+      {/if}
+    </Column>
+  </Table>
+  <br>
+  <Pagination
+    id="with_buttons"
+    total_pages={max(ceil(Enum.count(@posts) / @limit), 1)}
+    value={@current_page}
+    on_change="handle_paging_click"
+  >
+    <Pagination.PrevButton class="border-none">
+      <ControlsChevronLeft class="text-moon-24 rtl:rotate-180" />
+    </Pagination.PrevButton>
+    <Pagination.Pages selected_bg_color="bg-popo text-goku" />
+    <Pagination.NextButton class="border-none">
+      <ControlsChevronRight class="text-moon-24 rtl:rotate-180" />
+    </Pagination.NextButton>
+  </Pagination>
+</div>
+
+<Modal id="body_modal" is_open={@body_modal_open} :if={@body_modal_open}>
+  <Modal.Backdrop />
+  <Modal.Panel>
+    <div class="p-4  border-beerus">
+      <h3 class="text-moon-18 text-center text-bulma font-medium border-b-2 pb-4">
+        {@selected_post.title}
+      </h3>
+      <br>
+      <div class="text-left pb-4">
+        {@selected_post.body}
+      </div>
+      <div class="pb-2 font-semibold flex gap-3 flex-wrap">
+        Tags: {#for item <- get_tags(@selected_post.id)}
+          <Tag>{item}</Tag>
+        {/for}
+      </div>
+      <div class="font-semibold">
+        Author: {get_name(@selected_post.user_id)}
+      </div>
+      <img src={get_path(@selected_post.id)} width="500">
+      <Button on_click="close_body_modal" class="mt-4" variant="outline">Close</Button>
+    </div>
+  </Modal.Panel>
+</Modal>

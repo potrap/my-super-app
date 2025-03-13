@@ -1,0 +1,78 @@
+<header class="fixed top-0 mb-4 bg-gohan w-full">
+  <div class="relative p-4 flex flex-row gap-2 items-center justify-between text-bulma">
+    <a href="/" aria-label="admin main page">
+      <img src={static_path(@socket, "/images/logo-1.svg")} width="150" class="mx-auto pl-4">
+    </a>
+  </div>
+</header>
+
+<nav
+  aria-label="Sidebar"
+  class="fixed top-16 h-screen flex flex-col flex-grow gap-6 pt-16 pb-20 lg:px-8"
+>
+  <div class="flex flex-col gap-1 pt-3">
+    <.link href={~p"/admin/users/"}>
+      <button
+        id="menu_item"
+        class="bg-white rounded-lg w-full text-black pr-4 pl-4 pt-2 pb-2 text-base flex justify-start border-solid border-2"
+      >
+        Registred Users
+      </button>
+    </.link>
+
+    <.link href={~p"/admin/blog/"}>
+      <button
+        id="menu_item"
+        class="bg-white rounded-lg w-full text-black pr-4 pl-4 pt-2 pb-2 text-base flex justify-start border-solid border-2"
+      >
+        Blog
+      </button>
+    </.link>
+
+    <.link href={~p"/admin/pictures/"}>
+      <button
+        id="menu_item"
+        class="bg-white rounded-lg w-full text-black pr-4 pl-4 pt-2 pb-2 text-base flex justify-start border-solid border-2"
+      >
+        Pictures
+      </button>
+    </.link>
+
+    {#if @current_user.operator_id != nil}
+      <.link href={~p"/admin/site-configs/"}>
+        <button
+          id="menu_item"
+          class="bg-white rounded-lg w-full text-black pr-4 pl-4 pt-2 pb-2 text-base flex justify-start border-solid border-2"
+        >
+          Site Configs
+        </button>
+      </.link>
+
+      <.link href={~p"/admin/roles/"}>
+        <button
+          id="menu_item"
+          class="bg-white rounded-lg w-full text-black pr-4 pl-4 pt-2 pb-2 text-base flex justify-start border-solid border-2"
+        >
+          Roles
+        </button>
+      </.link>
+    {/if}
+    {#if @current_user.operator_id != nil or @current_user.role_id == 1}
+      <.link href={~p"/admin/operators/"}>
+        <button
+          id="menu_item"
+          class="bg-white rounded-lg w-full text-black pr-4 pl-4 pt-2 pb-2 text-base flex justify-start border-solid border-2"
+        >
+          Operators
+        </button>
+      </.link>
+    {/if}
+  </div>
+</nav>
+
+<main class="px-4 py-20 sm:px-6 lg:px-8">
+  <div style="margin-left:15rem">
+    <.flash_group flash={@flash} />
+    {@inner_content}
+  </div>
+</main>

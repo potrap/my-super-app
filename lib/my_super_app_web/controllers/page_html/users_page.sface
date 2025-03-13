@@ -1,0 +1,77 @@
+<div style="padding: 0rem 16rem">
+  <Search
+    id="default-search"
+    {=@filter}
+    on_keyup="change_filter"
+    options={[]}
+    class="pb-4"
+    prompt="Search by username"
+  />
+
+  <Table
+    id="table_users"
+    items={user <- users_pages(assigns)}
+    {=@sort}
+    sorting_click="on_sorting_click"
+    selected={@selected}
+    selected_bg="bg-krillin"
+  >
+    <Column label="id" name="id" sortable>
+      <div class={"#{if user.id == @current_user.id, do: "text-popo font-bold text-moon-16", else: ""}"}>
+        {user.id}
+      </div>
+    </Column>
+    <Column label="Username" name="username" sortable>
+      <div class={"#{if user.id == @current_user.id, do: "text-popo font-bold text-moon-16", else: ""}"}>
+        {user.username}
+      </div>
+    </Column>
+    <Column label="Email" name="email" sortable>
+      <div class={"#{if user.id == @current_user.id, do: "text-popo font-bold text-moon-16", else: ""}"}>
+        {user.email}
+      </div>
+    </Column>
+    <Column label="">
+      {#if @current_user.id == user.id}
+        <Button
+          full_width="true"
+          on_click="set_open"
+          class="bg-popo hover:bg-neutral-700"
+          value={user.id}
+        >Delete role</Button>
+      {#else}
+      {/if}
+    </Column>
+  </Table>
+
+  <Modal id="default_modal">
+    <Modal.Backdrop />
+    <Modal.Panel>
+      <div class="p-4  border-beerus">
+        <h3 class="text-moon-18 text-center text-bulma font-medium border-b-2 pb-4">
+          Are you sure you want your profile {@user.username} ?
+        </h3>
+      </div>
+      <div class="p-4 border-beerus flex justify-end">
+        <Button on_click="set_close" variant="outline">Discard</Button>
+        <Button on_click="set_close_confirm" value={@user.id} class="bg-popo hover:bg-zeno ml-4">Confirm</Button>
+      </div>
+    </Modal.Panel>
+  </Modal>
+
+  <br>
+  <Pagination
+    id="with_buttons"
+    total_pages={max(ceil(Enum.count(@users) / @limit), 1)}
+    value={@current_page}
+    on_change="handle_paging_click"
+  >
+    <Pagination.PrevButton class="border-none">
+      <ControlsChevronLeft class="text-moon-24 rtl:rotate-180" />
+    </Pagination.PrevButton>
+    <Pagination.Pages selected_bg_color="bg-popo text-goku" />
+    <Pagination.NextButton class="border-none">
+      <ControlsChevronRight class="text-moon-24 rtl:rotate-180" />
+    </Pagination.NextButton>
+  </Pagination>
+</div>

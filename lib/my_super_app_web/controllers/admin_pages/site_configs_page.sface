@@ -1,0 +1,239 @@
+<h3 class="text-moon-32  transition-colors mb-4">Site Configs</h3>
+
+<div class="flex">
+  <Button on_click="open_create_modal" class="mb-4 mr-4 bg-popo hover:bg-neutral-700">
+    Add New Site Config
+  </Button>
+
+  <Dropdown id="dropdown">
+    <Dropdown.Trigger>
+      <Button class="bg-popo hover:bg-neutral-700">{@dropdown_name}</Button>
+    </Dropdown.Trigger>
+    <Dropdown.Options class="w-auto">
+      {#for item <- @items}
+        <Dropdown.Option on_click="option_send" value={item}>
+          <Lego.Title>{item}</Lego.Title>
+        </Dropdown.Option>
+      {#else}
+        No items
+      {/for}
+      <Dropdown.Option on_click="option_send_all" value="All Operators">
+        <Lego.Title>All Operators</Lego.Title>
+      </Dropdown.Option>
+    </Dropdown.Options>
+  </Dropdown>
+
+  <Search
+    id="default-search"
+    {=@filter}
+    on_keyup="change_filter"
+    options={[]}
+    class="pb-4 ml-4"
+    prompt="Search by site config name, id and operator name"
+  />
+
+  <Button on_click="clear_filter" class="mb-4 mr-4 bg-popo hover:bg-neutral-700">
+    Clear Filter
+  </Button>
+</div>
+
+<Form for={@form} change="filter_dates">
+  <div class="flex flex-col">
+    <label class="text-sm font-medium">Filter Dates</label>
+    <div class="flex space-x-4">
+      <div class="flex flex-col">
+        <label for="from" class="text-xs">From</label>
+        <Input id="from" type="date" value={@from} placeholder="Start Date" class="w-40" />
+      </div>
+      <div class="flex flex-col">
+        <label for="to" class="text-xs">To</label>
+        <Input id="to" type="date" value={@to} placeholder="End Date" class="w-40" />
+      </div>
+    </div>
+  </div>
+</Form>
+
+<Snackbar id="snackbar_delete_site" is_open={@open_delete} timeout={2000} :if={@open_delete}>
+  <Snackbar.Icon class="bg-roshi-10 text-roshi">
+    <GenericInfo />
+  </Snackbar.Icon>
+  <Snackbar.Content>
+    <Snackbar.Header>Success</Snackbar.Header>
+    <Snackbar.Message>Site <span class="text-moon-14 font-medium transition-colors">{@site.name}</span> deleted</Snackbar.Message>
+  </Snackbar.Content>
+  <Snackbar.Close />
+</Snackbar>
+
+<Snackbar
+  id="snackbar_create_role"
+  is_open={@open_create_snackbar}
+  timeout={2000}
+  :if={@open_create_snackbar}
+>
+  <Snackbar.Icon class="bg-roshi-10 text-roshi">
+    <GenericInfo />
+  </Snackbar.Icon>
+  <Snackbar.Content>
+    <Snackbar.Header>Success</Snackbar.Header>
+    <Snackbar.Message>Site <span class="text-moon-14 font-medium transition-colors">{@site.name}</span> successfully created</Snackbar.Message>
+  </Snackbar.Content>
+  <Snackbar.Close />
+</Snackbar>
+
+<Snackbar
+  id="snackbar_create_role_false"
+  is_open={@open_create_snackbar_error}
+  timeout={2000}
+  :if={@open_create_snackbar_error}
+>
+  <Snackbar.Icon class="bg-chichi-10 text-chichi">
+    <GenericInfo />
+  </Snackbar.Icon>
+  <Snackbar.Content>
+    <Snackbar.Header>ERROR</Snackbar.Header>
+    <Snackbar.Message>Site was already created or length less than 3 or more than 25</Snackbar.Message>
+  </Snackbar.Content>
+  <Snackbar.Close />
+</Snackbar>
+
+<Modal id="create_site_modal" is_open={@site_modal_open} :if={@site_modal_open}>
+  <Modal.Backdrop />
+  <Modal.Panel>
+    <div class="p-4  border-beerus">
+      <h3 class="text-moon-18 text-center text-bulma font-medium border-b-2 pb-4">
+        Create New Site Config
+      </h3>
+      <br>
+      <div class="text-left border-b-2 pb-4">
+        <Form for={@form} change="validate" submit="save" class="pt-8">
+          <div class="flex">
+            <Field field={:name} class="p-4" label="Brand">
+              <Input placeholder="Brand" />
+            </Field>
+            <Field field={:key} class="p-4" label="Key">
+              <Input placeholder="Key" />
+            </Field>
+          </div>
+          <Field field={:value} class="px-4" label="Value">
+            <Input placeholder="Value" type="number" />
+          </Field>
+          <Field label="Status" field={:status} class="px-4">
+            <Select
+              field={:status}
+              options={[[key: "ACTIVE", value: "ACTIVE"], [key: "STOPPED", value: "STOPPED"]]}
+            />
+          </Field>
+          <div class="p-4 border-beerus flex justify-end pt-8">
+            <Button on_click="close_create_modal" variant="outline">Discard</Button>
+            <Button type="submit" class="bg-popo hover:bg-neutral-700 ml-4">Create</Button>
+          </div>
+        </Form>
+      </div>
+    </div>
+  </Modal.Panel>
+</Modal>
+
+<Modal id="default_modal" is_open={@site_delete_open} :if={@site_delete_open}>
+  <Modal.Backdrop />
+  <Modal.Panel>
+    <div class="p-4  border-beerus">
+      <h3 class="text-moon-18 text-center text-bulma font-medium border-b-2 pb-4">
+        Are you sure you want to delete site: {@site.name} ?
+      </h3>
+      <br>
+      <div class="text-left border-b-2 pb-4">
+        id: {@site.id}
+        <br>
+        Site name: {@site.name}
+      </div>
+    </div>
+    <div class="p-4 border-beerus flex justify-end">
+      <Button on_click="set_close" variant="outline">Discard</Button>
+      <Button on_click="set_close_confirm" value={@site.id} class="bg-popo hover:bg-neutral-700 ml-4">Confirm</Button>
+    </div>
+  </Modal.Panel>
+</Modal>
+
+<div class="w-full gap-4">
+  <Table
+    items={site <- sites_pages(assigns)}
+    class="pb-4 pt-4"
+    {=@sort}
+    sorting_click="handle_sorting_click"
+    is_cell_border
+    id="table_users"
+  >
+    <Column name="id" label="ID" sortable>
+      {site.id}
+    </Column>
+    <Column name="name" label="Brand" sortable>
+      {site.name}
+    </Column>
+    <Column name="key" label="Key" sortable>
+      {site.key}
+    </Column>
+    <Column name="operator" label="Operator">
+      {CasinosAdmins.get_operator(site.operator_id).name}
+    </Column>
+    <Column name="inserted_at" label="Created at" sortable>
+      {Timex.format!(site.inserted_at, "%b %d, %Y, %H:%M:%S", :strftime)}
+    </Column>
+    <Column name="value" label="Value" sortable>
+      {site.value}
+    </Column>
+    <Column name="status" label="Status" sortable>
+      {site.status}
+    </Column>
+    <Column class="flex justify-center" label="Change Status">
+      <IconButton
+        icon={if site.status == "ACTIVE", do: "media_pause", else: "media_play"}
+        on_click="change"
+        values={status: site.status, id: site.id}
+        size="md"
+        variant={if site.status == "ACTIVE", do: "outline", else: "outline"}
+        disabled={if @current_user.operator_id != site.operator_id, do: true, else: false}
+      />
+    </Column>
+    <Column label="">
+      {#if @current_user.operator_id == site.operator_id}
+        <Button
+          full_width="true"
+          on_click="set_open"
+          value={site.id}
+          class="bg-popo hover:bg-neutral-700"
+        >Delete site</Button>
+      {#else}
+        <Button full_width="true" on_click="set_open" value={site.id} disabled class="bg-popo">Delete site</Button>
+      {/if}
+    </Column>
+    <Column name="status" label="Open Site" sortable>
+      {#if @current_user.operator_id == site.operator_id && site.status == "ACTIVE"}
+        <Button
+          full_width="true"
+          on_click="open_site"
+          value={site.id}
+          class="bg-popo hover:bg-neutral-700"
+        >
+          Open site</Button>
+      {#else}
+        <Button full_width="true" on_click="open_site" value={site.id} disabled class="bg-popo">
+          Open site</Button>
+      {/if}
+    </Column>
+  </Table>
+  <br>
+  <Pagination
+    id="with_buttons"
+    total_pages={max(ceil(Enum.count(@sites) / @limit), 1)}
+    value={@current_page}
+    on_change="handle_paging_click"
+  >
+    <Pagination.PrevButton class="border-none">
+      <ControlsChevronLeft class="text-moon-24 rtl:rotate-180" />
+    </Pagination.PrevButton>
+    <Pagination.Pages selected_bg_color="bg-popo text-goku" />
+    <Pagination.NextButton class="border-none">
+      <ControlsChevronRight class="text-moon-24 rtl:rotate-180" />
+    </Pagination.NextButton>
+  </Pagination>
+</div>

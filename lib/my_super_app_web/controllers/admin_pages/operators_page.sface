@@ -1,0 +1,141 @@
+<h3 class="text-moon-32 transition-colors mb-4">Operators</h3>
+
+{#if @current_user.operator_id != nil}
+  <Button on_click="open_drawer_create" class="mb-4 mr-4 bg-popo hover:bg-neutral-700" disabled>
+    Add Operator
+  </Button>
+{#else}
+  <Button on_click="open_drawer_create" class="mb-4 mr-4 bg-popo hover:bg-neutral-700">
+    Add Operator
+  </Button>
+{/if}
+<Table items={operator <- @operators} is_cell_border row_click="open_drawer" id="table_users">
+  <Column name="id" label="ID">
+    {operator.id}
+  </Column>
+  <Column name="username" label="Name">
+    {operator.name}
+  </Column>
+  <Column name="inserted_at" label="Created at">
+    {Timex.format!(operator.inserted_at, "%b %d, %Y, %H:%M:%S", :strftime)}
+  </Column>
+  <Column name="updated_at" label="Updated at">
+    {Timex.format!(operator.updated_at, "%b %d, %Y, %H:%M:%S", :strftime)}
+  </Column>
+  <Column name="users_operators" label="How much user have this operator ID">
+    {CasinosAdmins.count_users_with_operator(operator.id)}
+  </Column>
+  <Column class="flex justify-center">
+    {#if @current_user.operator_id != nil}
+      <Button on_click="modal_open" value={operator.id} disabled="true" class="bg-popo">Delete</Button>
+    {#else}
+      <Button on_click="modal_open" value={operator.id} class="bg-popo hover:bg-neutral-700">Delete</Button>
+    {/if}
+  </Column>
+</Table>
+
+<Drawer id="create_drawer" is_open={@create_drawer_open} :if={@create_drawer_open}>
+  <Drawer.Panel>
+    <div class="flex justify-end pr-4 pt-4">
+      <IconButton icon="controls_close_small" variant="ghost" on_click="on_create_close" />
+    </div>
+    <Form for={@form} change="validate" submit="save" class="pt-8">
+      <div class="flex items-center justify-center">
+        <p class="text-2xl font-bold">
+          Operator create</p>
+      </div>
+      <Field field={:name} class="p-4" label="Operator name">
+        <Input placeholder="Operator name" value="" />
+      </Field>
+      <div class="p-4 flex justify-end">
+        <Button on_click="on_create_close" variant="outline">Discard</Button>
+        <Button type="submit" class="bg-popo hover:bg-neutral-700 ml-4">Create</Button>
+      </div>
+    </Form>
+  </Drawer.Panel>
+</Drawer>
+
+<Drawer id="drawer" is_open={@drawer_open} on_close="close_drawer" :if={@drawer_open}>
+  <Drawer.Panel class="p-8">
+    <Form for={@form} change="validate" submit="update_operator">
+      <div class="flex items-center justify-center">
+        <p class="text-2xl font-bold">
+          Operator information</p>
+      </div>
+      {#if @current_user.role_id == 1 or Mix.env() == :test}
+        <Field field={:name} class="py-8" label="Name">
+          <Input placeholder="Name" value={@selected_operator.name} />
+        </Field>
+        <div class="flex justify-end">
+          <Button variant="outline" on_click="close_drawer">Discard</Button>
+          <Button class="bg-popo hover:bg-neutral-700 ml-4" type="submit">Update</Button>
+        </div>
+      {#else}
+        <Field field={:name} class="py-8" label="Name">
+          <Input placeholder="Name" disabled value={@selected_operator.name} />
+        </Field>
+        <div class="flex justify-end">
+          <Button variant="outline" on_click="close_drawer" disabled="true">
+            Discard</Button>
+          <Button class="bg-popo hover:bg-neutral-700 ml-4" type="submit" disabled="true">Update</Button>
+        </div>
+      {/if}
+    </Form>
+  </Drawer.Panel>
+</Drawer>
+
+<Modal id="modal_delete_operators" is_open={@delete_modal_open} :if={@delete_modal_open}>
+  <Modal.Backdrop />
+  <Modal.Panel>
+    <div class="p-4 border-b-2 border-beerus">
+      <h3 class="text-xl mb-4 font-bold text-center">
+        Delete operator?
+      </h3>
+      <p class="mb-4">
+        Are you sure y wanna delete {@operator.name} ?
+      </p>
+    </div>
+    <div class="flex justify-end p-4">
+      <Button variant="outline" on_click="modal_cancel">Discard</Button>
+      <Button class="bg-popo hover:bg-neutral-700 ml-4" on_click="modal_delete" value={@operator.id}>Delete operator</Button>
+    </div>
+  </Modal.Panel>
+</Modal>
+
+<Snackbar id="snackbar_delete_operator" is_open={@open_delete} timeout={2000} :if={@open_delete}>
+  <Snackbar.Icon class="bg-roshi-10 text-roshi">
+    <GenericInfo />
+  </Snackbar.Icon>
+  <Snackbar.Content>
+    <Snackbar.Header>Success</Snackbar.Header>
+    <Snackbar.Message>Operator {@operator.name} deleted</Snackbar.Message>
+  </Snackbar.Content>
+  <Snackbar.Close />
+</Snackbar>
+
+<Snackbar id="snackbar_create_operator" is_open={@open_create} timeout={2000} :if={@open_create}>
+  <Snackbar.Icon class="bg-roshi-10 text-roshi">
+    <GenericInfo />
+  </Snackbar.Icon>
+  <Snackbar.Content>
+    <Snackbar.Header>Success</Snackbar.Header>
+    <Snackbar.Message>Operator successfully created</Snackbar.Message>
+  </Snackbar.Content>
+  <Snackbar.Close />
+</Snackbar>
+
+<Snackbar
+  id="snackbar_delete_operator_false"
+  is_open={@open_delete_error}
+  timeout={2000}
+  :if={@open_delete_error}
+>
+  <Snackbar.Icon class="bg-chichi-10 text-chichi">
+    <GenericInfo />
+  </Snackbar.Icon>
+  <Snackbar.Content>
+    <Snackbar.Header>ERROR</Snackbar.Header>
+    <Snackbar.Message>Operator was already created or length less than 3 or more than 25</Snackbar.Message>
+  </Snackbar.Content>
+  <Snackbar.Close />
+</Snackbar>

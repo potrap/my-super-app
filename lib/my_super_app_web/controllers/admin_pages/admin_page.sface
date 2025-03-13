@@ -1,0 +1,279 @@
+<h3 class="text-moon-32 transition-colors mb-4">Users</h3>
+<div class="flex justify-between">
+  <Dropdown id="dropdown_roles">
+    <Dropdown.Trigger>
+      <Button class="bg-popo hover:bg-neutral-700">{@dropdown_name}</Button>
+    </Dropdown.Trigger>
+    <Dropdown.Options class="w-auto">
+      {#for item <- @items}
+        <Dropdown.Option on_click="option_send" value={item}>
+          <Lego.Title>{item}</Lego.Title>
+        </Dropdown.Option>
+      {#else}
+        No items
+      {/for}
+      <Dropdown.Option on_click="option_send_all" value="All Roles">
+        <Lego.Title>All Roles</Lego.Title>
+      </Dropdown.Option>
+    </Dropdown.Options>
+  </Dropdown>
+
+  {#if @current_user.role_id == 1}
+    <Dropdown id="dropdown_operators" class="pl-8">
+      <Dropdown.Trigger>
+        <Button class="bg-popo hover:bg-neutral-700">{@dropdown_name_operators}</Button>
+      </Dropdown.Trigger>
+      <Dropdown.Options class="w-auto">
+        {#for oper <- @items_operators}
+          <Dropdown.Option on_click="option_send_oper" value={oper}>
+            <Lego.Title>{oper}</Lego.Title>
+          </Dropdown.Option>
+        {#else}
+          No items
+        {/for}
+        <Dropdown.Option on_click="option_send_all_oper" value="All Operators">
+          <Lego.Title>All Users</Lego.Title>
+        </Dropdown.Option>
+      </Dropdown.Options>
+    </Dropdown>
+  {#else}
+  {/if}
+
+  <Search
+    id="default-search"
+    {=@filter}
+    on_keyup="change_filter"
+    options={[]}
+    class="pb-8 pl-8"
+    prompt="Search by username or id"
+  />
+</div>
+<Snackbar id="snackbar_delete" is_open={@open_delete} timeout={2000}>
+  <Snackbar.Icon class="bg-roshi-10 text-roshi">
+    <GenericInfo />
+  </Snackbar.Icon>
+  <Snackbar.Content>
+    <Snackbar.Header>Success</Snackbar.Header>
+    <Snackbar.Message>User {@user.username} deleted</Snackbar.Message>
+  </Snackbar.Content>
+  <Snackbar.Close />
+</Snackbar>
+
+<Modal id="default_modal" is_open={@modal_delete_open} :if={@modal_delete_open}>
+  <Modal.Backdrop />
+  <Modal.Panel>
+    <div class="p-4  border-beerus">
+      <h3 class="text-moon-18 text-center text-bulma font-medium border-b-2 pb-4">
+        Are you sure you want to delete user: {@user.username} ?
+      </h3>
+      <br>
+      <div class="text-left border-b-2 pb-4">
+        id: {@user.id}
+        <br>
+        username: {@user.username}
+        <br>
+        email: {@user.email}
+      </div>
+    </div>
+    <div class="p-4 border-beerus flex justify-end">
+      <Button on_click="set_close" variant="outline">Discard</Button>
+      <Button on_click="set_close_confirm" value={@user.id} class="bg-popo hover:bg-neutral-700 ml-4">Confirm</Button>
+    </div>
+  </Modal.Panel>
+</Modal>
+
+<div class="w-full">
+  <Table
+    items={user <- users_pages(assigns)}
+    class="pb-4"
+    {=@sort}
+    sorting_click="handle_sorting_click"
+    is_cell_border
+    selected={@selected}
+    selected_bg="bg-krillin"
+    id="table_users"
+  >
+    <Column name="id" label="ID" sortable>
+      <div class={"#{if user.id == @current_user.id, do: "text-popo font-bold text-moon-16", else: ""}"}>
+        {user.id}
+      </div>
+    </Column>
+    <Column name="username" label="Username" sortable>
+      <div class={"#{if user.id == @current_user.id, do: "text-popo font-bold text-moon-16", else: ""}"}>
+        {user.username}
+      </div>
+    </Column>
+    <Column name="updated_at" label="Email" sortable>
+      <div class={"#{if user.id == @current_user.id, do: "text-popo font-bold text-moon-16", else: ""}"}>
+        {user.email}
+      </div>
+    </Column>
+    <Column name="inserted_at" label="Registred at" sortable>
+      <div class={"#{if user.id == @current_user.id, do: "text-popo font-bold text-moon-16", else: ""}"}>
+        {Timex.format!(user.inserted_at, "%b %d, %Y, %H:%M:%S", :strftime)}
+      </div>
+    </Column>
+    <Column name="operator_id" label="Operator" sortable>
+      <div class={"#{if user.id == @current_user.id, do: "text-popo font-bold text-moon-16", else: ""}"}>
+        {#if user.operator_id == nil}
+          -
+        {#else}
+          {get_operator(user.operator_id)}
+        {/if}
+      </div>
+    </Column>
+    <Column name="role_id" label="Role" sortable>
+      <div class={"#{if user.id == @current_user.id, do: "text-popo font-bold text-moon-16", else: ""}"}>
+        {#if user.role_id == nil}
+          -
+        {#else}
+          {get_role_name(user.role_id)}
+        {/if}
+      </div>
+    </Column>
+    <Column label="">
+      {#if user.operator_id != nil or @current_user.role_id == 1 or user.role_id == 1 or
+          (@current_user.role_id != nil and @current_user.role_id != 1)}
+        <Button full_width="true" on_click="set_open" value={user.id} disabled="true" class="bg-popo">Delete user</Button>
+      {#else}
+        <Button
+          full_width="true"
+          on_click="set_open"
+          value={user.id}
+          class="bg-popo hover:bg-neutral-700"
+        >Delete user</Button>
+      {/if}
+    </Column>
+    <Column>
+      {#if @current_user.operator_id != nil}
+        {#if user.role_id == 1 or @current_user.id == user.id or user.operator_id != nil}
+          <Button full_width="true" value={user.id} on_click="open_drawer" disabled class="bg-popo"><GenericUserSwapping class="text-moon-32" />Give role permission</Button>
+        {#elseif @current_user.operator_id == nil}
+          <Button full_width="true" value={user.id} on_click="open_drawer" disabled class="bg-popo"><GenericUserSwapping class="text-moon-32" />Give role permission</Button>
+        {#else}
+          <Button
+            full_width="true"
+            value={user.id}
+            on_click="open_drawer"
+            class="bg-popo hover:bg-neutral-700"
+          ><GenericUserSwapping class="text-moon-32" />Give role permission</Button>
+        {/if}
+      {#elseif @current_user.role_id == 1}
+        {#if user.role_id == 1 or @current_user.operator_id != nil or
+            (@current_user.role_id != nil and @current_user.role_id != 1)}
+          <Button
+            full_width="true"
+            value={user.id}
+            on_click="open_drawer_operator"
+            disabled
+            class="bg-popo"
+          ><GenericUserSwapping class="text-moon-32" />Give operator permission</Button>
+        {#else}
+          <Button
+            full_width="true"
+            value={user.id}
+            on_click="open_drawer_operator"
+            class="bg-popo hover:bg-neutral-700"
+          ><GenericUserSwapping class="text-moon-32" />Give operator permission</Button>
+        {/if}
+      {#else @current_user.role_id == 1}
+      {/if}
+    </Column>
+  </Table>
+
+  <Drawer id="drawer" is_open={@drawer_open} on_close="close_drawer" :if={@drawer_open}>
+    <Drawer.Panel class="p-8">
+      <Form for={@form} change="validate" submit="update_user">
+        <div class="flex items-center justify-center">
+          <p class="text-2xl font-bold mb-4">
+            User information</p>
+        </div>
+        <Field field={:username} class="py-2" label="Username">
+          <Input placeholder="Name" readonly value={@selected_user.username} />
+        </Field>
+        <Field field={:email} class="py-2" label="Username">
+          <Input placeholder="Email" readonly value={@selected_user.email} />
+        </Field>
+        {#if @selected_user.role_id == nil}
+          <h1 class="text-center font-bold pt-4 text-moon-18">This user doesn't have role</h1>
+        {#else}
+          <h1 class="text-center font-bold pt-4 text-moon-18">User current role is {get_role_name(@selected_user.role_id)}</h1>
+        {/if}
+        <Field field={:role_id} class="py-2" label="Select role">
+          <Select
+            field={:role_id}
+            options={prioritize_role(@selected_user.role_id, @current_user.operator_id)}
+          />
+        </Field>
+
+        <div class="flex justify-between mt-4">
+          <Button class="mu-2 mb-2 bg-popo hover:bg-neutral-700" type="submit">Update Role</Button>
+          {#if @selected_user.role_id != nil}
+            <Button class="mu-2 mb-2 bg-popo hover:bg-neutral-700" on_click="delete_role">Delete Role</Button>
+          {#else}
+            <Button class="mu-2 mb-2 bg-popo hover:bg-neutral-700" disabled>Delete Role</Button>
+          {/if}
+          <Button on_click="close_drawer" variant="outline">
+            Discard</Button>
+        </div>
+      </Form>
+    </Drawer.Panel>
+  </Drawer>
+
+  <Drawer
+    id="drawer_operator"
+    is_open={@drawer_open_operator}
+    on_close="close_drawer_operator"
+    :if={@drawer_open_operator}
+  >
+    <Drawer.Panel class="p-8">
+      <Form for={@form} change="validate" submit="update_user_operator">
+        <div class="flex items-center justify-center">
+          <p class="text-2xl font-bold mb-4">
+            User information</p>
+        </div>
+        <Field field={:username} class="py-2" label="Username">
+          <Input placeholder="Name" readonly value={@selected_user.username} />
+        </Field>
+        <Field field={:email} class="py-2" label="Email">
+          <Input placeholder="Email" readonly value={@selected_user.email} />
+        </Field>
+        <Field field={:operator_id} class="py-2">
+          {#if @selected_user.operator_id == nil}
+            <h1 class="text-center font-bold pb-2">This user is not operator</h1>
+          {#else}
+            <h1 class="text-center font-bold pb-2">This user is operator: {get_operator(@selected_user.operator_id)}</h1>
+          {/if}
+          <Select field={:operator_id} options={prioritize_operator(@selected_user.operator_id)} />
+        </Field>
+
+        <div class="flex justify-between mt-4">
+          <Button class="mu-2 mb-2 bg-popo hover:bg-neutral-700" type="submit">Update</Button>
+          {#if @selected_user.operator_id != nil}
+            <Button class="mu-2 mb-2 bg-popo hover:bg-neutral-700" on_click="delete_operator">Delete Operator Permission</Button>
+          {#else}
+            <Button class="mu-2 mb-2 bg-popo hover:bg-neutral-700" disabled>Delete Operator Permission</Button>
+          {/if}
+          <Button variant="outline" on_click="close_drawer_operator">
+            Discard</Button>
+        </div>
+      </Form>
+    </Drawer.Panel>
+  </Drawer>
+
+  <br>
+  <Pagination
+    id="with_buttons"
+    total_pages={max(ceil(Enum.count(@users) / @limit), 1)}
+    value={@current_page}
+    on_change="handle_paging_click"
+  >
+    <Pagination.PrevButton class="border-none">
+      <ControlsChevronLeft class="text-moon-24 rtl:rotate-180" />
+    </Pagination.PrevButton>
+    <Pagination.Pages selected_bg_color="bg-popo text-goku" />
+    <Pagination.NextButton class="border-none">
+      <ControlsChevronRight class="text-moon-24 rtl:rotate-180" />
+    </Pagination.NextButton>
+  </Pagination>
+</div>

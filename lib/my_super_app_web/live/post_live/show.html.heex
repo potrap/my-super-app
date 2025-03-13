@@ -1,0 +1,56 @@
+<div class="px-64">
+  <div class="flex justify-end text-center">
+    <%= if @post.user_id == @current_user.id do %>
+      <div class="actions">
+        <.link patch={~p"/posts/#{@post}/edit"} phx-click={JS.push_focus()}>
+          <.button>Edit post</.button>
+        </.link>
+      </div>
+    <% end %>
+  </div>
+
+  <.header>
+    <h1 style="font-size: 30px; font-weight: bold; text-align: center; margin-top: 35px">
+      <%= @post.title %>
+    </h1>
+  </.header>
+  <%= if get_picture_path(@post.id) != nil do %>
+    <img
+      src={get_picture_path(@post.id).path}
+      width="640"
+      height="480"
+      class="mt-6 mx-auto shadow-lg rounded-lg"
+    />
+  <% end %>
+
+  <p style="padding-top: 25px; font-size: 25px"><%= @post.body %></p>
+  <p style="padding-top: 25px; font-size: 20px; font-weight: 500;">
+    Author: <%= get_name(@post.user_id) %>
+  </p>
+  <p style="padding-top: 25px; font-size: 20px; font-weight: 500;">
+    Tags:
+    <%= for item <- get_tags(@post.id) do %>
+      <span class="bg-zinc-400 px-4 rounded-md"><%= item %></span>
+    <% end %>
+  </p>
+
+  <.link navigate={~p"/posts"}>
+    <.button class="mt-16">Back to posts</.button>
+  </.link>
+
+  <.modal
+    :if={@live_action == :edit}
+    id="post-modal"
+    show
+    on_cancel={JS.patch(~p"/posts/#{@post}")}
+  >
+    <.live_component
+      module={MySuperAppWeb.PostLive.FormComponent}
+      id={@post.id}
+      title={@page_title}
+      action={@live_action}
+      post={@post}
+      patch={~p"/posts/#{@post}"}
+    />
+  </.modal>
+</div>
