@@ -17,13 +17,9 @@ Move into the project folder:
 
 ### Step 3: Run Docker compose
 
-Run the following command to start a Redis container using Docker Compose:
-
 ```docker-compose up -d```
 
 ### Step 4: Install Dependencies
-
-Fetch all required dependencies:
 
 ```mix setup```
 
