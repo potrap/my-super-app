@@ -1,11 +1,38 @@
 # MySuperApp
 
-To start your Phoenix server:
+## Getting Started
 
-  * Run `mix setup` to install and setup dependencies
-  * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
+### Step 1: Clone the Repository
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+Clone the repository to your local machine:
+
+
+```git clone https://github.com/potrap/my-super-app```
+
+### Step 2: Navigate to the Project Directory
+
+Move into the project folder:
+
+```сd  cd my_super_app/```
+
+### Step 3: Run Docker compose
+
+Run the following command to start a Redis container using Docker Compose:
+
+```docker-compose up -d```
+
+### Step 4: Install Dependencies
+
+Fetch all required dependencies:
+
+```mix setup```
+
+### Step 5: Start the Phoenix Server
+
+Run the Phoenix server:
+
+```mix phx.server```
+
 
 ## Video presentation
 
