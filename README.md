@@ -7,12 +7,11 @@ To start your Phoenix server:
 
 Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
+## Video presentation
 
-## Learn more
+https://youtu.be/ofonQrJw7kQ?si=6ANsEgRncWtoUgPR
 
-  * Official website: https://www.phoenixframework.org/
-  * Guides: https://hexdocs.pm/phoenix/overview.html
-  * Docs: https://hexdocs.pm/phoenix
-  * Forum: https://elixirforum.com/c/phoenix-forum
-  * Source: https://github.com/phoenixframework/phoenix
+## Superadmin
+
+To log in as a superadmin, enter the email: superadmin@gmail.com and password: 123456789
+This will allow you to assign operator rights to other users.
